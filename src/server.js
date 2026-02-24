@@ -2,11 +2,22 @@ import app from './app.js';
 import config from './config/index.js';
 import connectDB from './config/db.js';
 import logger from './utils/logger.js';
+import { startEmailCron } from './cron/emailCron.js';
+import { startEmailWorker } from './workers/emailWorker.js';
+import { startOCRWorker } from './workers/ocrWorker.js';
+import { startCallbackWorker } from './workers/callbackWorker.js';
 
 const startServer = async () => {
     try {
         // Connect to Database
         await connectDB();
+
+        // Initialize RabbitMQ components
+        logger.info("Initializing RabbitMQ Workers and Cron...");
+        await startEmailCron();
+        await startEmailWorker();
+        await startOCRWorker();
+        await startCallbackWorker();
 
         const PORT = config.port;
 
