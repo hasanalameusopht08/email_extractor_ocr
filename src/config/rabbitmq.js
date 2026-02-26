@@ -16,10 +16,6 @@ export const connectRabbitMQ = async () => {
         await channel.assertQueue("ocr_queue", { durable: true });
         await channel.assertQueue("callback_queue", { durable: true });
 
-        // Fair dispatch: don't give more than 1 message to a worker at a time
-        // This is crucial for OCR jobs that take 120+ seconds.
-        await channel.prefetch(1);
-
         console.log("RabbitMQ connected and queues asserted.");
         return channel;
     } catch (err) {

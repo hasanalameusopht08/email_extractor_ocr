@@ -19,8 +19,9 @@ export const startEmailWorker = async () => {
                     const ocrJob = {
                         type: 'OCRJob',
                         account_id: job.account_id,
+                        email: job.email_config.user,
                         file_name: file.name,
-                        file_data: file.data,
+                        file_data: file.data.toString('base64'),
                         callback_url: job.callback_url,
                     };
                     channel.sendToQueue('ocr_queue', Buffer.from(JSON.stringify(ocrJob)), { persistent: true });

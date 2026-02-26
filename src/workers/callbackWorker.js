@@ -14,7 +14,7 @@ export const startCallbackWorker = async () => {
 
             try {
                 await axios.post(job.callback_url, {
-                    email: job.account_id,
+                    email: job.email,
                     file_name: job.file_name,
                     ocr_result: job.ocr_result,
                 });

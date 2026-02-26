@@ -1,3 +1,5 @@
+import axios from 'axios';
+import FormData from "form-data";
 import logger from '../utils/logger.js';
 
 /**
@@ -10,24 +12,33 @@ export const processOCR = async (fileName, fileData) => {
     try {
         logger.info(`[OCRService] Starting OCR for ${fileName}...`);
 
-        // Simulate long processing time (the user mentioned 120+ seconds)
-        // For testing purposes, we might not want to wait 2 minutes, 
-        // but let's simulate a reasonable delay or use a real API if available.
-        // Since no API is provided, we simulate success after a delay.
+        const form = new FormData();
+        form.append("file", fileData, {
+            filename: fileName,
+        });
 
-        await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds for simulation
+        const response = await axios.post(
+            process.env.OCR_API_URL || "http://localhost:8000/ocr", // change to your server URL
+            form,
+            {
+                headers: {
+                    ...form.getHeaders(),
+                },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+            }
+        );
 
-        logger.info(`[OCRService] OCR completed for ${fileName}`);
-
+        logger.info(`[OCRService] OCR completed for ${response}`);
+        return response.data;
         return {
-            status: 'success',
+            success: true,
             extracted_data: {
-                invoice_number: 'INV-' + Math.floor(Math.random() * 10000),
-                total_amount: (Math.random() * 500).toFixed(2),
-                currency: 'USD',
-                date: new Date().toISOString().split('T')[0],
+                invoice_number: "INV-00123",
+                amount: 1240.50,
+                date: "2026-02-25"
             },
-            processed_at: new Date().toISOString()
+            original_file: "invoice1.pdf"
         };
     } catch (error) {
         logger.error(`[OCRService] Error processing OCR: ${error.message}`);
