@@ -91,13 +91,15 @@ export const fetchUnreadEmails = async (emailConfig, accountId, maxEmails = 5) =
         try {
             // Fetch unread emails
             const messages = await client.search({ seen: false }, { sort: ['UID'] });
-            const latestMessages = messages.slice(-maxEmails);
+            // console.log("messages", messages);
+
+            // const latestMessages = messages.slice(-maxEmails);
 
             logger.info(
-                `[EmailWorker] [Account ${accountId}] Found ${latestMessages.length} unread emails`
+                `[EmailWorker] [Account ${accountId}] Found ${messages.length} unread emails`
             );
 
-            for (const msgId of latestMessages) {
+            for (const msgId of messages) {
                 try {
                     const message = await client.fetchOne(msgId, { source: true });
                     const parsed = await simpleParser(message.source);
@@ -129,6 +131,11 @@ export const fetchUnreadEmails = async (emailConfig, accountId, maxEmails = 5) =
                             );
                         }
                     }
+
+                    // Mark as seen after successful parsing
+                    await client.messageFlagsAdd(msgId, ['\\Seen']);
+                    logger.info(`[EmailWorker] [Account ${accountId}] Marked message ${msgId} as seen`);
+
                 } catch (err) {
                     logger.error(
                         `[EmailWorker] [Account ${accountId}] Failed to process message ${msgId}: ${err.message}`

@@ -12,6 +12,8 @@ export const startEmailCron = async () => {
         console.log("Cron job started: Fetch ACTIVE email accounts...");
 
         const accounts = await getEmailAccountsForSync(); // from DB
+        // console.log("accounts", accounts.length);
+
         for (const account of accounts) {
             const job = {
                 type: "EmailFetchJob",
@@ -26,7 +28,7 @@ export const startEmailCron = async () => {
                 },
                 callback_url: account.callback_url,
             };
-            console.log("Sending job for account:", account.email);
+            // console.log("Sending job for account:", account.user);
 
             channel.sendToQueue(
                 "email_fetch_queue",
@@ -35,6 +37,6 @@ export const startEmailCron = async () => {
             );
         }
 
-        console.log(`Cron job finished: ${accounts.length} jobs pushed to email_fetch_queue`);
+        // console.log(`Cron job finished: ${accounts.length} jobs pushed to email_fetch_queue`);
     });
 };

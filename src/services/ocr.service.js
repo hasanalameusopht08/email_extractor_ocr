@@ -13,9 +13,7 @@ export const processOCR = async (fileName, fileData) => {
         logger.info(`[OCRService] Starting OCR for ${fileName}...`);
 
         const form = new FormData();
-        form.append("file", fileData, {
-            filename: fileName,
-        });
+        form.append("file", fileData, { filename: fileName });
 
         const response = await axios.post(
             process.env.OCR_API_URL || "http://localhost:8000/ocr", // change to your server URL
@@ -26,20 +24,12 @@ export const processOCR = async (fileName, fileData) => {
                 },
                 maxContentLength: Infinity,
                 maxBodyLength: Infinity,
+                timeout: 300000, // 5 minutes timeout
             }
         );
 
         logger.info(`[OCRService] OCR completed for ${response}`);
         return response.data;
-        return {
-            success: true,
-            extracted_data: {
-                invoice_number: "INV-00123",
-                amount: 1240.50,
-                date: "2026-02-25"
-            },
-            original_file: "invoice1.pdf"
-        };
     } catch (error) {
         logger.error(`[OCRService] Error processing OCR: ${error.message}`);
         throw error;

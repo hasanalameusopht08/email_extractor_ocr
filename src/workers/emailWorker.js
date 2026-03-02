@@ -10,11 +10,15 @@ export const startEmailWorker = async () => {
             if (!msg) return;
 
             const job = JSON.parse(msg.content.toString());
-            console.log(`Email Worker: Processing account ${job.account_id}`);
+            // console.log(`Email Worker: Processing account ${job.account_id}`);
 
             try {
                 const attachments = await fetchUnreadEmails(job.email_config, job.account_id, 1);
-
+                // console.log("attachments", typeof attachments, attachments.length);
+                if (attachments.length === 0) {
+                    channel.ack(msg);
+                    return;
+                }
                 for (const file of attachments) {
                     const ocrJob = {
                         type: 'OCRJob',
@@ -24,9 +28,9 @@ export const startEmailWorker = async () => {
                         file_data: file.data.toString('base64'),
                         callback_url: job.callback_url,
                     };
-                    channel.sendToQueue('ocr_queue', Buffer.from(JSON.stringify(ocrJob)), { persistent: true });
+                    // console.log("Sending to ocrJob", ocrJob.file_name);
+                    await channel.sendToQueue('ocr_queue', Buffer.from(JSON.stringify(ocrJob)), { persistent: true });
                 }
-
                 channel.ack(msg);
             } catch (err) {
                 console.error("Email Worker Error:", err);

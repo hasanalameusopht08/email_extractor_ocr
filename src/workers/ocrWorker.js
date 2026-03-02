@@ -11,18 +11,10 @@ export const startOCRWorker = async () => {
             if (!msg) return;
 
             const job = JSON.parse(msg.content.toString());
-            console.log(`OCR Worker: Processing file ${job.file_name}`);
+            // console.log(`OCR Worker: Processing file ${job.file_name}`);
 
             try {
-                let fileBuffer = Buffer.from(job.file_data, 'base64');
-
-                // If the buffer was serialized as a JSON object {type: 'Buffer', data: [...]}
-                if (fileBuffer && typeof fileBuffer === 'object' && fileBuffer.type === 'Buffer') {
-                    fileBuffer = Buffer.from(fileBuffer.data);
-                } else if (typeof fileBuffer === 'string') {
-                    // If it was base64 encoded or something similar
-                    fileBuffer = Buffer.from(fileBuffer, 'base64');
-                }
+                const fileBuffer = Buffer.from(job.file_data, 'base64');
 
                 const ocrResult = await processOCR(job.file_name, fileBuffer);
 
@@ -34,6 +26,7 @@ export const startOCRWorker = async () => {
                     ocr_result: ocrResult,
                     callback_url: job.callback_url,
                 };
+                // console.log("results", callbackJob);
 
                 channel.sendToQueue(
                     "callback_queue",
@@ -44,7 +37,7 @@ export const startOCRWorker = async () => {
                 channel.ack(msg);
             } catch (err) {
                 console.error("OCR Worker Error:", err);
-                channel.nack(msg, false, true);
+                channel.nack(msg, false, false); // do NOT requeue
             }
         },
         { noAck: false }
